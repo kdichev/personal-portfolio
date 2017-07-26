@@ -31,6 +31,8 @@ function counter(state={count: 0, saved: []}, action) {
         ...state,
         saved: [...saved.slice(0, -1)]
       };
+    case 'load':
+      return {...state, saved: [...action.payload] }
     default:
       return state;
   }
