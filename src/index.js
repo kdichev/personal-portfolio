@@ -8,10 +8,12 @@ import { createStore, applyMiddleware } from 'redux'
 import { createLogger } from 'redux-logger'
 import { combineReducers } from 'redux'
 import counter from './reducers/counter'
+import fetch from './reducers/fetch'
 
 // Combine all application reducers
 const appStore = combineReducers({
   counter,
+  fetch
 })
 
 

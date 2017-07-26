@@ -1,16 +1,25 @@
 import React, { Component } from 'react';
+import Button from './Button'
 
 class Counter extends Component {
   render() {
-    const { value, onIncreaseClick, onDecreaseClick, onResetClick, onSaveClick, savedCounter, onRemoveClick } = this.props
+    const {
+      value,
+      onIncreaseClick,
+      onDecreaseClick,
+      onResetClick,
+      onSaveClick,
+      savedCounter,
+      onRemoveClick
+    } = this.props
     return (
       <div>
         {value}
-        <button  onClick={onIncreaseClick}>increase</button>
-        <button disabled={value < 1 ? true : false} onClick={onDecreaseClick}>decrease</button>
-        <button disabled={value < 1 ? true : false} onClick={onResetClick}>reset</button>
-        <button onClick={onSaveClick}>save</button>
-        <button disabled={savedCounter.length < 1 ? true : false} onClick={onRemoveClick}>remove</button>
+        <Button onClick={onIncreaseClick} text={"increase"} />
+        <Button onClick={onDecreaseClick} text={"decrease"} disabled={value < 1 ? true : false} />
+        <Button onClick={onResetClick} text={"reset"} disabled={value < 1 ? true : false} />
+        <Button onClick={onSaveClick} text={"save"} />
+        <Button onClick={onRemoveClick} text={"remove"} disabled={value < 1 ? true : false} />
         {savedCounter.map((item =>
           <p>{item}</p>
         ))}

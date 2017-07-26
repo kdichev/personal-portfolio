@@ -3,15 +3,21 @@ import { connect } from 'react-redux'
 import logo from './logo.svg';
 import './App.css';
 import Counter from './components/Counter'
+import Data from './components/Data'
 import {
   increaseAction,
   decreaseAction,
   resetAction,
   saveAction,
-  removeAction
+  removeAction,
+  fetchData
 } from './actions'
 
 class App extends Component {
+  componentDidMount() {
+    const response = [1,2,3,4,5,6,7,8]
+    this.props.fetchData(response);
+  }
   render() {
     return (
       <div className="App">
@@ -31,6 +37,7 @@ class App extends Component {
           value={this.props.counterValue}
           savedCounter={this.props.savedCounter}
         />
+        {/* <Data data={this.props.fetch}/> */}
       </div>
     );
   }
@@ -39,9 +46,11 @@ class App extends Component {
 // Map Redux state to component props
 function mapStateToProps(state)  {
   let counter = state.counter
+  let fetch = state.fetch
   return {
     counterValue: counter.count,
-    savedCounter: counter.saved
+    savedCounter: counter.saved,
+    fetch: fetch.data
   };
 }
 
@@ -52,7 +61,8 @@ function mapDispatchToProps(dispatch) {
     onDecreaseClick: () => dispatch(decreaseAction),
     onResetClick: () => dispatch(resetAction),
     onSaveClick: () => dispatch(saveAction),
-    onRemoveClick: () => dispatch(removeAction)
+    onRemoveClick: () => dispatch(removeAction),
+    fetchData: (data) => dispatch(fetchData(data))
   };
 }
 
