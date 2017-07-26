@@ -2,10 +2,13 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux'
 import logo from './logo.svg';
 import './App.css';
+import Counter from './components/Counter'
 import {
   increaseAction,
   decreaseAction,
-  resetAction
+  resetAction,
+  saveAction,
+  removeAction
 } from './actions'
 
 class App extends Component {
@@ -19,10 +22,15 @@ class App extends Component {
         <p className="App-intro">
           To get started, edit <code>src/App.js</code> and save to reload.
         </p>
-        {this.props.value}
-        <button onClick={this.props.onIncreaseClick}>increase</button>
-        <button onClick={this.props.onDecreaseClick}>decrease</button>
-        <button onClick={this.props.onResetClick}>reset</button>
+        <Counter
+          onIncreaseClick={this.props.onIncreaseClick}
+          onDecreaseClick={this.props.onDecreaseClick}
+          onResetClick={this.props.onResetClick}
+          onSaveClick={this.props.onSaveClick}
+          onRemoveClick={this.props.onRemoveClick}
+          value={this.props.counterValue}
+          savedCounter={this.props.savedCounter}
+        />
       </div>
     );
   }
@@ -31,9 +39,9 @@ class App extends Component {
 // Map Redux state to component props
 function mapStateToProps(state)  {
   let counter = state.counter
-  console.log(state);
   return {
-    value: counter.count
+    counterValue: counter.count,
+    savedCounter: counter.saved
   };
 }
 
@@ -42,7 +50,9 @@ function mapDispatchToProps(dispatch) {
   return {
     onIncreaseClick: () => dispatch(increaseAction),
     onDecreaseClick: () => dispatch(decreaseAction),
-    onResetClick: () => dispatch(resetAction)
+    onResetClick: () => dispatch(resetAction),
+    onSaveClick: () => dispatch(saveAction),
+    onRemoveClick: () => dispatch(removeAction)
   };
 }
 
