@@ -37,7 +37,7 @@ class App extends Component {
           value={this.props.counterValue}
           savedCounter={this.props.savedCounter}
         />
-        {/* <Data data={this.props.fetch}/> */}
+        <Data data={this.props.fetch}/>
       </div>
     );
   }
