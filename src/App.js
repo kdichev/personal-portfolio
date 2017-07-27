@@ -5,12 +5,19 @@ import './App.css';
 import {
   updateStore,
 } from './actions'
-import {getFetch, postFetch} from './api'
+import {
+  getFetch,
+  postFetch,
+  postFetch1
+} from './api'
 
 const GUID_LINK = 'http://52.18.171.117/api/kiosk/location/338495a7-d32c-4991-bc32-74018850497b'
 const TRAILER_TYPES_LINK = 'http://52.18.171.117/api/kiosk/location/productids/'
 const LOGIN = 'http://52.18.171.117/api/kiosk/user/'
 const PRICE_LINK = 'http://52.18.171.117/api/kiosk/orderlinetypes'
+const CREATE_LINK = 'http://52.18.171.117/api/kiosk/reservation/create'
+const CREATE_LEASE = 'http://52.18.171.117/api/kiosk/lease/create'
+
 class App extends Component {
   constructor() {
     super();
@@ -26,6 +33,7 @@ class App extends Component {
   componentDidMount() {
     const { onUpdateStore } = this.props
     getFetch(GUID_LINK, (data) => onUpdateStore('reservation', 'locationId', data.LokationID))
+    getFetch(GUID_LINK, (data) => onUpdateStore('reservation', 'isBluetoothLocation', data.isBluetoothLocation))
   }
 
   onClick = () => {
@@ -40,20 +48,35 @@ class App extends Component {
 
   onLogin = () => {
     const { onUpdateStore } = this.props
-    getFetch(LOGIN + this.state.mobile + '/' + this.state.email, (data) => {
-      onUpdateStore('customer', 'DebitorNavn', data.DebitorNavn)
-      onUpdateStore('customer', 'DebitorEmail', data.DebitorEmail)
-      onUpdateStore('customer', 'DebitorID', data.DebitorID)
-      onUpdateStore('customer', 'DebitorAdresse1', data.DebitorAdresse1)
-      onUpdateStore('customer', 'DebitorPostnr', data.DebitorPostnr)
-      onUpdateStore('customer', 'DebitorBy', data.DebitorBy)
+    const { mobile, email } = this.state
+    getFetch(LOGIN + mobile + '/' + email, (data) => {
+      const {DebitorNavn, DebitorEmail, DebitorID, DebitorAdresse1, DebitorPostnr, DebitorBy } = data
+      onUpdateStore('customer', 'DebitorNavn', DebitorNavn)
+      onUpdateStore('customer', 'DebitorEmail', DebitorEmail)
+      onUpdateStore('customer', 'DebitorID', DebitorID)
+      onUpdateStore('customer', 'DebitorAdresse1', DebitorAdresse1)
+      onUpdateStore('customer', 'DebitorPostnr', DebitorPostnr)
+      onUpdateStore('customer', 'DebitorBy', DebitorBy)
     })
   }
 
   onDriverSave = () => {
     const { onUpdateStore } = this.props
-    onUpdateStore('driver', 'PrimaryDrivingLicenseNumber', this.state.license)
-    onUpdateStore('driver', 'RegistrationNumber', this.state.registration)
+    const { license, registration } = this.state
+    const { locationId, productId, startDate, endDate } = this.props.state.reservation
+    onUpdateStore('driver', 'PrimaryDrivingLicenseNumber', license)
+    onUpdateStore('driver', 'RegistrationNumber', registration)
+    postFetch1(CREATE_LEASE, {
+      lease: {
+        FKLocationID: locationId,
+        FKProductID: productId,
+        SessionID: '6852267c-d8c2-471a-8a35-cf4a3403c412',
+        ReservationDateStart: startDate,
+        ReservationDateEnd: endDate
+      }
+    }, (data) => {
+      console.log(data);
+    })
   }
 
   getPrice = () => {
@@ -71,18 +94,35 @@ class App extends Component {
   }
 
   onInputChange = (e) => {
-    this.setState({ [e.target.id]: e.target.value })
+    const { id, value } = e.target
+    this.setState({ [id]: value })
+  }
+
+  onReserveClick = () => {
+    const { reservation, customer, driver } = this.props.state
+    postFetch1(CREATE_LINK, {
+      ...reservation,
+      customer: { ...customer },
+      driverInfo: { ...driver }
+      }, (data) => {
+        console.log(data);
+      }
+    )
   }
 
   render() {
+    const { locationId, startDate, endDate, productId } = this.props.state.reservation
+    const { trailers, summary } = this.state
+    const { DebitorNavn } = this.props.state.customer
+    const { RegistrationNumber } = this.props.state.driver
     return (
       <div className="App">
         <div className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
           <h2>Welcome to React</h2>
         </div>
-        {this.props.state.reservation.locationId}
-        {this.state.trailers.map((item, index) =>
+        {locationId}
+        {trailers.map((item, index) =>
           <div key={index}>
             <p>{`${item.ProductName} ${item.ProductID}`}
               <button
@@ -95,17 +135,17 @@ class App extends Component {
         <button onClick={this.onClick}>get trailers</button>
         <br />
         <br />
-        {this.props.state.reservation.productId &&
+        {productId &&
           <div>
             selected trailer:
-            {this.props.state.reservation.productId}
+            {productId}
             <br />
             <br />
             your selected times:
             <br />
-            {this.props.state.reservation.startDate}
+            {startDate}
             <br />
-            {this.props.state.reservation.endDate}
+            {endDate}
             <br />
             <br />
             <div>
@@ -117,7 +157,7 @@ class App extends Component {
               <br />
               <button onClick={this.onLogin}>login</button>
             </div>
-            {this.props.state.customer.DebitorNavn &&
+            {DebitorNavn &&
               <div>
                 <label>license:</label>
                 <input id='license' type='text' onChange={(e) => this.onInputChange(e)}/>
@@ -130,16 +170,16 @@ class App extends Component {
             }
             <br />
             <br />
-            {this.props.state.driver.RegistrationNumber &&
+            {RegistrationNumber &&
               <div>
                 <button onClick={this.getPrice}>get price</button>
-                {this.state.summary.map((item) =>
+                {summary.map((item) =>
                   item.type === 10 ? <p>{item.cost} DKK</p> : false
                 )}
               </div>
             }
-            {this.state.summary.length > 1 &&
-              <button>reserve</button>
+            {summary.length > 1 &&
+              <button onClick={this.onReserveClick}>reserve</button>
             }
           </div>
         }

@@ -27,14 +27,14 @@ function ftgroup(state = {
     paymentMethod: null,
     sessionId: null,
     locationId: null,
-    startDate: '2017-07-27T00:00',
+    startDate: '017-07-27T09:00:00.999Z',
     isBluetoothLocation: null,
-    endDate: '2017-07-27T20:00',
+    endDate: '017-07-27T18:00:33.531Z',
     insurance: 1,
     productId: null
   }
 }, action) {
-  switch(action.type){
+  switch(action.type) {
     case 'update':
     return {...state,
       [action.payload.field]: {

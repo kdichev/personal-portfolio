@@ -7,14 +7,10 @@ import { Provider } from 'react-redux'
 import { createStore, applyMiddleware } from 'redux'
 import { createLogger } from 'redux-logger'
 import { combineReducers } from 'redux'
-import counter from './reducers/counter'
-import fetch from './reducers/fetch'
 import ftgroup from './reducers/ftgroup'
 
 // Combine all application reducers
 const appStore = combineReducers({
-  counter,
-  fetch,
   ftgroup
 })
 
