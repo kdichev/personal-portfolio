@@ -5,15 +5,7 @@ import './App.css';
 import {
   updateStore,
 } from './actions'
-import {
-  postFetch
-} from './api'
-
 import NetworkService from './apiService/NetworkService'
-
-const PRICE_LINK = 'http://52.18.171.117/api/kiosk/orderlinetypes'
-const CREATE_LINK = 'http://52.18.171.117/api/kiosk/reservation/create'
-const CREATE_LEASE = 'http://52.18.171.117/api/kiosk/lease/create'
 
 class App extends Component {
   constructor() {
@@ -91,7 +83,7 @@ class App extends Component {
   onDriverSave = () => {
     const { onUpdateStore } = this.props
     const { license, registration } = this.state
-    const { locationId, productId, startDate, endDate } = this.props.state.reservation
+    //const { locationId, productId, startDate, endDate } = this.props.state.reservation
     onUpdateStore('driver', 'PrimaryDrivingLicenseNumber', license)
     onUpdateStore('driver', 'RegistrationNumber', registration)
     // postFetch1(CREATE_LEASE, {
