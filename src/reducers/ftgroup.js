@@ -27,10 +27,10 @@ function ftgroup(state = {
     paymentMethod: null,
     sessionId: null,
     locationId: null,
-    startDate: null,
+    startDate: '2017-07-27T00:00',
     isBluetoothLocation: null,
-    endDate: null,
-    insurance: 0,
+    endDate: '2017-07-27T20:00',
+    insurance: 1,
     productId: null
   }
 }, action) {
