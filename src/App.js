@@ -6,14 +6,11 @@ import {
   updateStore,
 } from './actions'
 import {
-  getFetch,
-  postFetch,
-  postFetch1
+  postFetch
 } from './api'
 
-const GUID_LINK = 'http://52.18.171.117/api/kiosk/location/338495a7-d32c-4991-bc32-74018850497b'
-const TRAILER_TYPES_LINK = 'http://52.18.171.117/api/kiosk/location/productids/'
-const LOGIN = 'http://52.18.171.117/api/kiosk/user/'
+import NetworkService from './apiService/NetworkService'
+
 const PRICE_LINK = 'http://52.18.171.117/api/kiosk/orderlinetypes'
 const CREATE_LINK = 'http://52.18.171.117/api/kiosk/reservation/create'
 const CREATE_LEASE = 'http://52.18.171.117/api/kiosk/lease/create'
@@ -30,15 +27,56 @@ class App extends Component {
       summary: []
     }
   }
-  componentDidMount() {
+
+  getLocationData = () => {
     const { onUpdateStore } = this.props
-    getFetch(GUID_LINK, (data) => onUpdateStore('reservation', 'locationId', data.LokationID))
-    getFetch(GUID_LINK, (data) => onUpdateStore('reservation', 'isBluetoothLocation', data.isBluetoothLocation))
+    NetworkService.getLocation()
+      .then(data => {
+        onUpdateStore('reservation', 'locationId', data.LokationID)
+        onUpdateStore('reservation', 'isBluetoothLocation', data.isBluetoothLocation)
+      })
   }
 
-  onClick = () => {
+  getTrailerData = () => {
     const { locationId } = this.props.state.reservation
-    getFetch(TRAILER_TYPES_LINK + locationId, (data) => this.setState({trailers: data}))
+    NetworkService.getTrailers(locationId)
+      .then(data => {
+        this.setState({trailers: data})
+      })
+  }
+
+  getUserData = () => {
+    const { onUpdateStore } = this.props
+    const { mobile, email } = this.state
+    NetworkService.getUser(mobile, email)
+      .then(data => {
+        const {DebitorNavn, DebitorEmail, DebitorID, DebitorAdresse1, DebitorPostnr, DebitorBy } = data
+        onUpdateStore('customer', 'DebitorNavn', DebitorNavn)
+        onUpdateStore('customer', 'DebitorEmail', DebitorEmail)
+        onUpdateStore('customer', 'DebitorID', DebitorID)
+        onUpdateStore('customer', 'DebitorAdresse1', DebitorAdresse1)
+        onUpdateStore('customer', 'DebitorPostnr', DebitorPostnr)
+        onUpdateStore('customer', 'DebitorBy', DebitorBy)
+      })
+  }
+
+  postReservationData = () => {
+    const { reservation, customer, driver } = this.props.state
+    NetworkService.postReservation({
+      ...reservation,
+      customer: { ...customer },
+      driverInfo: { ...driver }
+    }).then(data => {
+      console.log(data);
+    })
+  }
+
+  componentDidMount() {
+    this.getLocationData()
+  }
+
+  onSearchTrailersClick = () => {
+    this.getTrailerData();
   }
 
   onTrailerClick = (productId) => {
@@ -46,18 +84,8 @@ class App extends Component {
     onUpdateStore('reservation', 'productId', productId)
   }
 
-  onLogin = () => {
-    const { onUpdateStore } = this.props
-    const { mobile, email } = this.state
-    getFetch(LOGIN + mobile + '/' + email, (data) => {
-      const {DebitorNavn, DebitorEmail, DebitorID, DebitorAdresse1, DebitorPostnr, DebitorBy } = data
-      onUpdateStore('customer', 'DebitorNavn', DebitorNavn)
-      onUpdateStore('customer', 'DebitorEmail', DebitorEmail)
-      onUpdateStore('customer', 'DebitorID', DebitorID)
-      onUpdateStore('customer', 'DebitorAdresse1', DebitorAdresse1)
-      onUpdateStore('customer', 'DebitorPostnr', DebitorPostnr)
-      onUpdateStore('customer', 'DebitorBy', DebitorBy)
-    })
+  onLoginClick = () => {
+    this.getUserData()
   }
 
   onDriverSave = () => {
@@ -66,31 +94,31 @@ class App extends Component {
     const { locationId, productId, startDate, endDate } = this.props.state.reservation
     onUpdateStore('driver', 'PrimaryDrivingLicenseNumber', license)
     onUpdateStore('driver', 'RegistrationNumber', registration)
-    postFetch1(CREATE_LEASE, {
-      lease: {
-        FKLocationID: locationId,
-        FKProductID: productId,
-        SessionID: '6852267c-d8c2-471a-8a35-cf4a3403c412',
-        ReservationDateStart: startDate,
-        ReservationDateEnd: endDate
-      }
-    }, (data) => {
-      console.log(data);
-    })
+    // postFetch1(CREATE_LEASE, {
+    //   lease: {
+    //     FKLocationID: locationId,
+    //     FKProductID: productId,
+    //     SessionID: '6852267c-d8c2-471a-8a35-cf4a3403c412',
+    //     ReservationDateStart: startDate,
+    //     ReservationDateEnd: endDate
+    //   }
+    // }, (data) => {
+    //   console.log(data);
+    // })
   }
 
   getPrice = () => {
-    const { locationId, startDate, endDate, productId, insurance } = this.props.state.reservation
-    postFetch(PRICE_LINK, {
-      locationId,
-      startDate,
-      endDate,
-      productId,
-      insurance
-    },
-    (data) => {
-      this.setState({summary: data})
-    })
+    // const { locationId, startDate, endDate, productId, insurance } = this.props.state.reservation
+    // postFetch(PRICE_LINK, {
+    //   locationId,
+    //   startDate,
+    //   endDate,
+    //   productId,
+    //   insurance
+    // },
+    // (data) => {
+    //   this.setState({summary: data})
+    // })
   }
 
   onInputChange = (e) => {
@@ -99,15 +127,7 @@ class App extends Component {
   }
 
   onReserveClick = () => {
-    const { reservation, customer, driver } = this.props.state
-    postFetch1(CREATE_LINK, {
-      ...reservation,
-      customer: { ...customer },
-      driverInfo: { ...driver }
-      }, (data) => {
-        console.log(data);
-      }
-    )
+    this.postReservationData();
   }
 
   render() {
@@ -132,7 +152,7 @@ class App extends Component {
           </div>
         )}
         <br />
-        <button onClick={this.onClick}>get trailers</button>
+      <button onClick={this.onSearchTrailersClick}>get trailers</button>
         <br />
         <br />
         {productId &&
@@ -155,7 +175,7 @@ class App extends Component {
               <label>mobile:</label>
               <input id='mobile' type='text' onChange={(e) => this.onInputChange(e)}/>
               <br />
-              <button onClick={this.onLogin}>login</button>
+              <button onClick={this.onLoginClick}>login</button>
             </div>
             {DebitorNavn &&
               <div>
@@ -178,9 +198,7 @@ class App extends Component {
                 )}
               </div>
             }
-            {summary.length > 1 &&
-              <button onClick={this.onReserveClick}>reserve</button>
-            }
+            <button onClick={this.onReserveClick}>reserve</button>
           </div>
         }
       </div>
